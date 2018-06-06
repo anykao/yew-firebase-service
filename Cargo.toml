@@ -1,8 +1,8 @@
 [package]
-authors = ["cr4ftsm4n <mou.hangun@gmail.com>"]
+authors = ["anykao <600913@gmail.com>"]
 name = "yew-firebase-service"
 version = "0.1.0"
 
 [dependencies]
+yew = "0.4.0"
 stdweb = "0.4.6"
-yew = "0.3.0"

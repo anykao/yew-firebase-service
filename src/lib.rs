@@ -39,7 +39,7 @@ impl FirebaseService {
                 console.log(err);
                 callback.drop();
             });
-            return callback;
+            // return callback;
         };
         FirebaseTask(Some(handle))
     }
@@ -49,10 +49,14 @@ impl FirebaseService {
         &mut self,
         email: &str,
         password: &str,
-        callback: Callback<Value>,
+        callback: Callback<Result<Value, Value>>,
     ) -> FirebaseTask {
-        let callback = move |val| {
-            callback.emit(val);
+        let callback = move |success: bool, data: Value| {
+            if success {
+                callback.emit(Ok(data));
+            } else {
+                callback.emit(Err(data));
+            }
         };
         let handle = js! {
             var callback = @{ callback };
@@ -60,16 +64,16 @@ impl FirebaseService {
             auth.signInWithEmailAndPassword(@{email}, @{password})
                 .then(userData => {
                     // console.log(userData);
-                    callback({ok: true, user: userData, error: null});
+
+                    callback(true, userData);
                     callback.drop();
                 })
                 .catch(error => {
                     console.log(error);
-                    callback({ok: false, user: null, error: error});
+                    callback(false, error);
                     callback.drop();
                 });
-            return callback;
-
+            // return callback;
         };
         FirebaseTask(Some(handle))
     }
@@ -83,14 +87,10 @@ impl FirebaseService {
             var callback = @{ callback };
             var auth = firebase.auth();
             auth.onAuthStateChanged(user=>{
-                if (user) {
-                    callback({ok: true, user: user});
-                } else {
-                    callback({ok: false, user: null});
-                }
-                // callback.drop();
+                callback(user);
+                callback.drop();
             });
-            return callback;
+            // return callback;
         };
         FirebaseTask(Some(handle))
     }
@@ -109,11 +109,11 @@ impl Task for FirebaseTask {
         self.0.is_some()
     }
     fn cancel(&mut self) {
-        let handle = self.0.take().expect("tried to cancel firebase twice");
-        js! { @(no_return)
-            var handle = @{handle};
-            handle.drop();
-        }
+        // let handle = self.0.take().expect("tried to cancel firebase twice");
+        // js! { @(no_return)
+        //     var handle = @{handle};
+        //     handle.drop();
+        // }
     }
 }
 
